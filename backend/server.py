@@ -48,6 +48,7 @@ from plaid.model.ach_class import ACHClass
 from plaid.model.transfer_create_idempotency_key import TransferCreateIdempotencyKey
 from plaid.model.transfer_user_address_in_request import TransferUserAddressInRequest
 from plaid.api import plaid_api
+from airtable import get_table_data_by_id
 
 load_dotenv()
 
@@ -69,6 +70,9 @@ PLAID_PRODUCTS = os.getenv('PLAID_PRODUCTS', 'transactions').split(',')
 # PLAID_COUNTRY_CODES is a comma-separated list of countries for which users
 # will be able to select institutions from.
 PLAID_COUNTRY_CODES = os.getenv('PLAID_COUNTRY_CODES', 'US').split(',')
+api_key=os.getenv('AIRTABLE_API_KEY')
+base_id=os.getenv('AIRTABLE_BASE_ID')
+STUDIES_TABLE_NAME = 'Studies'
 
 
 def empty_to_none(field):
@@ -151,14 +155,15 @@ def get_verification_state():
 @app.route('/api/get_file_data', methods=['GET'])
 def get_file_data():
     id = request.args.get('id')  # Get the value of the 'id' parameter from the request query string
-    data = read_json_file('om2hj-ytjrg.json')
-    if data is None:
-        return jsonify({'error': 'Failed to load JSON file'})
-    result = [entry for entry in data if entry.get('ID') == id]
+    # data = read_json_file('om2hj-ytjrg.json')
+    # if data is None:
+    #     return jsonify({'error': 'Failed to load JSON file'})
+    # result = [entry for entry in data if entry.get('ID') == id]
+    result = get_table_data_by_id(base_id=base_id, table_name=STUDIES_TABLE_NAME, id=id)
     if len(result) > 0:
         global studydata        
-        studydata = result[0]
-        return jsonify(result[0])
+        studydata = result["fields"]
+        return jsonify(result)
     else:
         return jsonify({'error': 'Failed to find ID in JSON file'})
 
@@ -360,13 +365,14 @@ def get_verification():
             # Update cursor to the next cursor
             cursor = response['next_cursor']
         
-        latest_transactions = sorted(added, key=lambda t: t['date'])[-int(studydata['VerifyMaxTransactions']):]
+        latest_transactions = sorted(added, key=lambda t: t['date'])[-int(
+            studydata['VerifyMaxTransactions (from Verifications)'][0]):]
         
         count = 0
         for item in latest_transactions:
-            if (re.search(studydata['VerifyString'], item["name"])):
+            if (re.search(studydata['VerifyString (from Verifications)'][0], item["name"])):
                 count += 1
-                if count >= int(studydata['VerifyMinCount']):
+                if count >= int(studydata['VerifyMinCount (from Verifications)'][0]):
                     global is_verified
                     is_verified = True
                     break
@@ -389,7 +395,7 @@ def get_balancemin():
         )
         response = client.accounts_balance_get(request)                                
         has_student_balance = any(
-            account["subtype"] == studydata['BalanceSubTypes'] and account["balances"]["current"] > int(studydata['MinBalance'])
+            account["subtype"] == studydata['BalanceSubTypes (from Verification-Params)'] and account["balances"]["current"] > int(studydata['MinBalance (from Verification-Params)'][0])
             for account in response.to_dict()["accounts"]
         )
         if has_student_balance == True: 
