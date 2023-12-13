@@ -162,6 +162,15 @@ def get_file_data():
     result = get_table_data_by_id(base_id=base_id, table_name=STUDIES_TABLE_NAME, id=id)
     data = {}
     for key, value in result["fields"].items():
+    # Use regular expression to extract the key without additional information
+        match = re.match(r"([^\s(]+)", key)
+        if match:
+            clean_key = match.group(1)
+            # If the property is a list with a single value, replace it with that value
+            data[clean_key] = value[0] if isinstance(value, list) and len(value) == 1 else value
+
+    # Additional condition to replace list values in the result["fields"] with a single value
+    for key, value in data.items():
         if isinstance(value, list) and len(value) == 1:
             # If the property is a list with a single value, replace it with that value
             data[key] = value[0]
@@ -373,13 +382,13 @@ def get_verification():
             cursor = response['next_cursor']
         
         latest_transactions = sorted(added, key=lambda t: t['date'])[-int(
-            studydata['VerifyMaxTransactions (from Verifications)'][0]):]
+            studydata['VerifyMaxTransactions'][0]):]
         
         count = 0
         for item in latest_transactions:
-            if (re.search(studydata['VerifyString (from Verifications)'][0], item["name"])):
+            if (re.search(studydata['VerifyString'][0], item["name"])):
                 count += 1
-                if count >= int(studydata['VerifyMinCount (from Verifications)'][0]):
+                if count >= int(studydata['VerifyMinCount'][0]):
                     global is_verified
                     is_verified = True
                     break
@@ -402,7 +411,7 @@ def get_balancemin():
         )
         response = client.accounts_balance_get(request)                                
         has_student_balance = any(
-            account["subtype"] == studydata['BalanceSubTypes (from Verification-Params)'] and account["balances"]["current"] > int(studydata['MinBalance (from Verification-Params)'][0])
+            account["subtype"] == studydata['BalanceSubTypes'] and account["balances"]["current"] > int(studydata['MinBalance'][0])
             for account in response.to_dict()["accounts"]
         )
         if has_student_balance == True: 
