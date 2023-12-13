@@ -42,10 +42,10 @@ const Header = () => {
             <h4 className={styles.subtitle}>{studyData.StudyName}</h4>          
             <p>{studyData.subtitle}</p><br />         
             <h4 className={styles.subtitle}>What do you need to provide to qualify?</h4>          
-            {studyData.UseVerify === "1" && (
+            {parseInt(studyData.UseVerify, 10) === 1 && (
               <p>{studyData.VerifyDesc}</p>
             )}
-            {studyData.UseBalance === "1" && (
+            {parseInt(studyData.UseBalance, 10) === 1 && (
               <p>{studyData.BalanceDesc}</p>
             )}
             <br />
