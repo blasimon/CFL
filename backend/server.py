@@ -160,12 +160,19 @@ def get_file_data():
     #     return jsonify({'error': 'Failed to load JSON file'})
     # result = [entry for entry in data if entry.get('ID') == id]
     result = get_table_data_by_id(base_id=base_id, table_name=STUDIES_TABLE_NAME, id=id)
+    data = {}
+    for key, value in result["fields"].items():
+        if isinstance(value, list) and len(value) == 1:
+            # If the property is a list with a single value, replace it with that value
+            data[key] = value[0]
+        else:
+            data[key] = value
     if len(result) > 0:
         global studydata        
-        studydata = result["fields"]
-        return jsonify(result)
+        studydata = data
+        return jsonify(data)
     else:
-        return jsonify({'error': 'Failed to find ID in JSON file'})
+        return jsonify({'error': 'Failed to find ID in the Table'})
 
 @app.route('/api/info', methods=['POST'])
 def info():
