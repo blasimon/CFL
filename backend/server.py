@@ -382,13 +382,13 @@ def get_verification():
             cursor = response['next_cursor']
         
         latest_transactions = sorted(added, key=lambda t: t['date'])[-int(
-            studydata['VerifyMaxTransactions'][0]):]
+            studydata['VerifyMaxTransactions']):]
         
         count = 0
         for item in latest_transactions:
-            if (re.search(studydata['VerifyString'][0], item["name"])):
+            if (re.search(studydata['VerifyString'], item["name"])):
                 count += 1
-                if count >= int(studydata['VerifyMinCount'][0]):
+                if count >= int(studydata['VerifyMinCount']):
                     global is_verified
                     is_verified = True
                     break
@@ -411,7 +411,7 @@ def get_balancemin():
         )
         response = client.accounts_balance_get(request)                                
         has_student_balance = any(
-            account["subtype"] == studydata['BalanceSubTypes'] and account["balances"]["current"] > int(studydata['MinBalance'][0])
+            account["subtype"] == studydata['BalanceSubTypes'] and account["balances"]["current"] > int(studydata['MinBalance'])
             for account in response.to_dict()["accounts"]
         )
         if has_student_balance == True: 

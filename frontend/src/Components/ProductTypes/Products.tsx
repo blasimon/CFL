@@ -55,7 +55,7 @@ const Products = () => {
         />
       )}
 
-      {products.includes("transactions") && studyData?.UseVerify === "1" && (
+      {products.includes("transactions") && studyData && studyData.UseVerify !== null && parseInt(studyData.UseVerify, 10) === 1 &&  (
         <Endpoint
           endpoint="verifylasttrans"
           name={studyData?.StudyName ?? ""} 
@@ -65,7 +65,7 @@ const Products = () => {
           transformData={transformTransactionsData}          
         />
       )}
-      {!products.includes("payment_initiation") && studyData?.UseBalance === "1" && (
+      {!products.includes("payment_initiation") && studyData && studyData.UseBalance !== null && parseInt(studyData.UseBalance, 10) === 1 && (
           <Endpoint
               endpoint="balancemin"
               name={studyData?.StudyName ?? ""} 
